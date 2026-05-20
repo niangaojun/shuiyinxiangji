@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    
+    <!-- 相机主体 - 单色版本 -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M34,38 L42,38 L46,34 L62,34 L66,38 L74,38 C76.2,38 78,39.8 78,42 L78,66 C78,68.2 76.2,70 74,70 L34,70 C31.8,70 30,68.2 30,66 L30,42 C30,39.8 31.8,38 34,38 Z"/>
+    
+    <!-- 相机镜头外圈 -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,46 C59.5,46 64,50.5 64,56 C64,61.5 59.5,66 54,66 C48.5,66 44,61.5 44,56 C44,50.5 48.5,46 54,46 Z"/>
+    
+    <!-- 相机镜头内圈（镂空效果） -->
+    <path
+        android:fillColor="#000000"
+        android:pathData="M54,50 C57.3,50 60,52.7 60,56 C60,59.3 57.3,62 54,62 C50.7,62 48,59.3 48,56 C48,52.7 50.7,50 54,50 Z"/>
+    
+    <!-- 闪光灯 -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M68,42 C69.1,42 70,42.9 70,44 C70,45.1 69.1,46 68,46 C66.9,46 66,45.1 66,44 C66,42.9 66.9,42 68,42 Z"/>
+    
+    <!-- 水印标记 -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M36,62 L38,58 L40,62 L38,64 Z"/>
+    
+</vector>

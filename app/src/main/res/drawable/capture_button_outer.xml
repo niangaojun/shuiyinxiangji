@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 外圈发光效果 -->
+    <item>
+        <shape android:shape="oval">
+            <solid android:color="@color/accent_glow" />
+            <size
+                android:width="88dp"
+                android:height="88dp" />
+        </shape>
+    </item>
+    <!-- 白色外圈 -->
+    <item
+        android:bottom="2dp"
+        android:left="2dp"
+        android:right="2dp"
+        android:top="2dp">
+        <shape android:shape="oval">
+            <solid android:color="@color/white" />
+            <stroke
+                android:width="3dp"
+                android:color="@color/white" />
+        </shape>
+    </item>
+</layer-list>

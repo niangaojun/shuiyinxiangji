@@ -1,0 +1,55 @@
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <!-- 基础应用主题 - 现代深色主题 -->
+    <style name="Theme.WatermarkCamera" parent="Theme.Material3.Dark.NoActionBar">
+        <item name="colorPrimary">@color/primary</item>
+        <item name="colorPrimaryVariant">@color/primary_container</item>
+        <item name="colorOnPrimary">@color/on_primary</item>
+        <item name="colorSecondary">@color/secondary</item>
+        <item name="colorSecondaryVariant">@color/secondary_container</item>
+        <item name="colorOnSecondary">@color/on_secondary</item>
+        <item name="android:colorBackground">@color/background</item>
+        <item name="colorOnBackground">@color/on_background</item>
+        <item name="colorSurface">@color/surface</item>
+        <item name="colorOnSurface">@color/on_surface</item>
+        <item name="colorSurfaceVariant">@color/surface_variant</item>
+        <item name="colorOnSurfaceVariant">@color/on_surface_variant</item>
+        <item name="colorOutline">@color/outline</item>
+        
+        <!-- 状态栏设置 -->
+        <item name="android:statusBarColor">@android:color/transparent</item>
+        <item name="android:navigationBarColor">@android:color/transparent</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:windowLightNavigationBar" tools:targetApi="27">false</item>
+        
+        <!-- 窗口背景 -->
+        <item name="android:windowBackground">@color/background</item>
+        
+        <!-- 动画设置 -->
+        <item name="android:windowActivityTransitions">true</item>
+        <item name="android:windowContentTransitions">true</item>
+    </style>
+
+    <!-- 全屏主题 -->
+    <style name="Theme.WatermarkCamera.Fullscreen" parent="Theme.WatermarkCamera">
+        <item name="android:windowFullscreen">true</item>
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+        <item name="android:windowContentOverlay">@null</item>
+        <item name="android:windowTranslucentStatus">true</item>
+        <item name="android:windowTranslucentNavigation">true</item>
+    </style>
+    
+    <!-- 按钮样式 -->
+    <style name="CameraIconButton" parent="Widget.AppCompat.ImageButton">
+        <item name="android:background">@drawable/bg_icon_button</item>
+        <item name="android:padding">12dp</item>
+        <item name="android:scaleType">centerInside</item>
+        <item name="tint">@color/white</item>
+    </style>
+    
+    <!-- 拍照按钮样式 -->
+    <style name="CaptureButton" parent="Widget.AppCompat.ImageButton">
+        <item name="android:background">@drawable/capture_button_inner</item>
+        <item name="android:elevation">8dp</item>
+    </style>
+</resources>
