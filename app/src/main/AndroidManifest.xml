@@ -33,14 +33,39 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.WatermarkCamera"
         tools:targetApi="31">
+        <!-- 启动页面 - 判断是否需要显示协议 -->
         <activity
-            android:name=".MainActivity"
+            android:name=".SplashActivity"
             android:exported="true"
-            android:theme="@style/Theme.WatermarkCamera.Fullscreen">
+            android:theme="@style/Theme.WatermarkCamera.Fullscreen"
+            android:noHistory="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+        </activity>
+        
+        <!-- 用户协议页面 -->
+        <activity
+            android:name=".AgreementActivity"
+            android:exported="false"
+            android:theme="@style/Theme.WatermarkCamera"
+            android:noHistory="true">
+        </activity>
+        
+        <!-- 加载页面 -->
+        <activity
+            android:name=".LoadingActivity"
+            android:exported="false"
+            android:theme="@style/Theme.WatermarkCamera.Fullscreen"
+            android:noHistory="true">
+        </activity>
+        
+        <!-- 主界面 -->
+        <activity
+            android:name=".MainActivity"
+            android:exported="false"
+            android:theme="@style/Theme.WatermarkCamera.Fullscreen">
         </activity>
         
         <!-- 全屏显示图片的Activity -->

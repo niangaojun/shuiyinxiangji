@@ -70,3 +70,7 @@ reports/
 
 # Build outputs
 app/build/
+
+# Generated
+app/generated/
+app/src/main/java/com/example/watermarkcam/BuildConfig.java
