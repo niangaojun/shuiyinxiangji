@@ -53,6 +53,20 @@
             android:noHistory="true">
         </activity>
         
+        <!-- 隐私政策详情页 -->
+        <activity
+            android:name=".PrivacyPolicyActivity"
+            android:exported="false"
+            android:theme="@style/Theme.WatermarkCamera">
+        </activity>
+        
+        <!-- 用户协议详情页 -->
+        <activity
+            android:name=".UserAgreementActivity"
+            android:exported="false"
+            android:theme="@style/Theme.WatermarkCamera">
+        </activity>
+        
         <!-- 加载页面 -->
         <activity
             android:name=".LoadingActivity"
