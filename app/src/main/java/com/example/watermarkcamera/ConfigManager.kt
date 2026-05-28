@@ -79,4 +79,8 @@ class ConfigManager(context: Context) {
     fun resetToDefaults() {
         prefs.edit { clear() }
     }
+
+    fun getSharedPreferences(): SharedPreferences {
+        return prefs
+    }
 }

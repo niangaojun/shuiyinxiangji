@@ -28,6 +28,7 @@ import com.example.watermarkcamera.databinding.ActivityMainBinding
 import kotlinx.coroutines.*
 import java.io.File
 import kotlin.math.sqrt
+import android.content.SharedPreferences
 
 class MainActivity : AppCompatActivity() {
 
@@ -46,15 +47,19 @@ class MainActivity : AppCompatActivity() {
     private var lastCapturedImage: File? = null
     private var isProcessingImage = false
 
-    // 缩放手势相关变量
     private var initialDistance = 0f
     private var currentZoom = 1.0f
+
+    private val prefsListener = SharedPreferences.OnSharedPreferenceChangeListener { _, _ ->
+        binding.watermarkOverlay.refreshWatermark()
+    }
 
     companion object {
         private const val TAG = "MainActivity"
         private const val MIN_DISTANCE = 10f
         private const val ANIMATION_DURATION = 300L
         private const val LOCATION_WAIT_TIMEOUT = 5000L
+        private const val SETTINGS_REQUEST_CODE = 1001
     }
 
     // 使用 Activity Result API 替代已弃用的 onActivityResult
@@ -68,6 +73,12 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private val settingsLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        binding.watermarkOverlay.refreshWatermark()
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         _binding = ActivityMainBinding.inflate(layoutInflater)
@@ -77,6 +88,7 @@ class MainActivity : AppCompatActivity() {
         setupClickListeners()
         setupGestureDetector()
         setupAnimations()
+        setupPreferencesListener()
 
         // 检查权限
         if (permissionManager.hasAllRequiredPermissions()) {
@@ -102,12 +114,12 @@ class MainActivity : AppCompatActivity() {
         )
 
         locationManager = com.example.watermarkcamera.LocationManager(this) { location ->
-            // 只更新当前位置如果新位置更精确
             val currentAccuracy = currentLocation?.accuracy ?: Float.MAX_VALUE
             val newAccuracy = location.accuracy
-            
+
             if (newAccuracy <= currentAccuracy) {
                 currentLocation = location
+                binding.watermarkOverlay.updateLocation(location)
                 if (BuildConfig.DEBUG) {
                     Log.d(TAG, "位置更新: ${location.latitude}, ${location.longitude}, 精度: ${newAccuracy}米")
                 }
@@ -115,6 +127,10 @@ class MainActivity : AppCompatActivity() {
         }
 
         lifecycle.addObserver(locationManager)
+    }
+
+    private fun setupPreferencesListener() {
+        configManager.getSharedPreferences().registerOnSharedPreferenceChangeListener(prefsListener)
     }
 
     private fun setupClickListeners() {
@@ -128,7 +144,8 @@ class MainActivity : AppCompatActivity() {
         // 设置按钮
         binding.settingsButton.setOnClickListener { view ->
             animateButtonPress(view) {
-                startActivity(Intent(this, SettingsActivity::class.java))
+                val intent = Intent(this, SettingsActivity::class.java)
+                settingsLauncher.launch(intent)
             }
         }
 
@@ -169,7 +186,7 @@ class MainActivity : AppCompatActivity() {
                 .start()
         }
 
-        binding.bottomControls.apply {
+        binding.bottomControlsContainer.apply {
             alpha = 0f
             translationY = 100f
             animate()
@@ -289,7 +306,8 @@ class MainActivity : AppCompatActivity() {
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             R.id.action_settings -> {
-                startActivity(Intent(this, SettingsActivity::class.java))
+                val intent = Intent(this, SettingsActivity::class.java)
+                settingsLauncher.launch(intent)
                 true
             }
             R.id.action_gallery -> {
@@ -326,6 +344,7 @@ class MainActivity : AppCompatActivity() {
         locationManager.waitForAccurateLocation(8000) { location ->
             location?.let {
                 currentLocation = it
+                binding.watermarkOverlay.updateLocation(it)
                 if (BuildConfig.DEBUG) {
                     Log.d(TAG, "初始位置获取完成，精度: ${it.accuracy}米")
                 }
@@ -522,6 +541,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
+        configManager.getSharedPreferences().unregisterOnSharedPreferenceChangeListener(prefsListener)
         cameraManager.release()
         _binding = null
     }

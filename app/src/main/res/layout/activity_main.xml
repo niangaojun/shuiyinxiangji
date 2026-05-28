@@ -13,10 +13,20 @@
         android:id="@+id/previewView"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintBottom_toTopOf="@id/bottomControlsContainer"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
+    <!-- 水印预览层 -->
+    <com.example.watermarkcamera.WatermarkOverlayView
+        android:id="@+id/watermarkOverlay"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintBottom_toBottomOf="@id/previewView"
+        app:layout_constraintEnd_toEndOf="@id/previewView"
+        app:layout_constraintStart_toStartOf="@id/previewView"
+        app:layout_constraintTop_toTopOf="@id/previewView" />
 
     <!-- 对焦框视图 -->
     <com.example.watermarkcamera.FocusRingView
@@ -38,43 +48,19 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <!-- 顶部工具栏 -->
+    <!-- 顶部工具栏（只保留闪光灯按钮） -->
     <LinearLayout
         android:id="@+id/topToolbar"
-        android:layout_width="0dp"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginHorizontal="16dp"
         android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
         android:background="@drawable/bg_glass_toolbar"
         android:gravity="center_vertical"
         android:orientation="horizontal"
         android:padding="12dp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
-
-        <!-- 设置按钮 -->
-        <FrameLayout
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:background="@drawable/bg_icon_button">
-
-            <ImageButton
-                android:id="@+id/settingsButton"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="@string/settings"
-                android:padding="12dp"
-                android:scaleType="centerInside"
-                android:src="@drawable/ic_settings"
-                app:tint="@color/white" />
-        </FrameLayout>
-
-        <Space
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1" />
 
         <!-- 闪光灯按钮 -->
         <FrameLayout
@@ -95,87 +81,108 @@
         </FrameLayout>
     </LinearLayout>
 
-    <!-- 底部渐变遮罩 -->
-    <View
-        android:layout_width="0dp"
-        android:layout_height="200dp"
-        android:background="@drawable/bg_gradient_bottom"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent" />
-
-    <!-- 底部控制区域 -->
+    <!-- 底部控制区域容器 -->
     <LinearLayout
-        android:id="@+id/bottomControls"
+        android:id="@+id/bottomControlsContainer"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:layout_marginHorizontal="24dp"
-        android:layout_marginBottom="32dp"
-        android:gravity="center_vertical"
-        android:orientation="horizontal"
+        android:background="@drawable/bg_gradient_bottom"
+        android:orientation="vertical"
+        android:paddingTop="40dp"
+        android:paddingBottom="32dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent">
 
-        <!-- 图库按钮 -->
+        <!-- 底部控制按钮 -->
+        <LinearLayout
+            android:id="@+id/bottomControls"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginHorizontal="24dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <!-- 图库按钮 -->
+            <FrameLayout
+                android:layout_width="56dp"
+                android:layout_height="56dp"
+                android:background="@drawable/bg_icon_button">
+
+                <ImageButton
+                    android:id="@+id/galleryButton"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:background="?attr/selectableItemBackgroundBorderless"
+                    android:contentDescription="@string/gallery"
+                    android:padding="14dp"
+                    android:scaleType="centerInside"
+                    android:src="@drawable/icons8_picture_100"
+                    app:tint="@color/white" />
+            </FrameLayout>
+
+            <Space
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1" />
+
+            <!-- 拍照按钮容器 -->
+            <FrameLayout
+                android:layout_width="88dp"
+                android:layout_height="88dp"
+                android:background="@drawable/capture_button_outer">
+
+                <ImageButton
+                    android:id="@+id/captureButton"
+                    android:layout_width="72dp"
+                    android:layout_height="72dp"
+                    android:layout_gravity="center"
+                    android:background="@drawable/capture_button_inner"
+                    android:contentDescription="@string/capture"
+                    android:elevation="8dp" />
+            </FrameLayout>
+
+            <Space
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1" />
+
+            <!-- 最后拍摄照片预览 -->
+            <FrameLayout
+                android:layout_width="64dp"
+                android:layout_height="64dp"
+                android:background="@drawable/bg_preview_thumbnail">
+
+                <ImageView
+                    android:id="@+id/imageView"
+                    android:layout_width="56dp"
+                    android:layout_height="56dp"
+                    android:layout_gravity="center"
+                    android:background="@drawable/preview_background"
+                    android:contentDescription="@string/last_photo"
+                    android:scaleType="centerCrop"
+                    android:clipToOutline="true" />
+            </FrameLayout>
+        </LinearLayout>
+
+        <!-- 设置按钮（新增到底部） -->
         <FrameLayout
             android:layout_width="56dp"
             android:layout_height="56dp"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="16dp"
             android:background="@drawable/bg_icon_button">
 
             <ImageButton
-                android:id="@+id/galleryButton"
+                android:id="@+id/settingsButton"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:background="?attr/selectableItemBackgroundBorderless"
-                android:contentDescription="@string/gallery"
+                android:contentDescription="@string/settings"
                 android:padding="14dp"
                 android:scaleType="centerInside"
-                android:src="@drawable/icons8_picture_100"
+                android:src="@drawable/ic_settings"
                 app:tint="@color/white" />
-        </FrameLayout>
-
-        <Space
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1" />
-
-        <!-- 拍照按钮容器 -->
-        <FrameLayout
-            android:layout_width="88dp"
-            android:layout_height="88dp"
-            android:background="@drawable/capture_button_outer">
-
-            <ImageButton
-                android:id="@+id/captureButton"
-                android:layout_width="72dp"
-                android:layout_height="72dp"
-                android:layout_gravity="center"
-                android:background="@drawable/capture_button_inner"
-                android:contentDescription="@string/capture"
-                android:elevation="8dp" />
-        </FrameLayout>
-
-        <Space
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1" />
-
-        <!-- 最后拍摄照片预览 -->
-        <FrameLayout
-            android:layout_width="64dp"
-            android:layout_height="64dp"
-            android:background="@drawable/bg_preview_thumbnail">
-
-            <ImageView
-                android:id="@+id/imageView"
-                android:layout_width="56dp"
-                android:layout_height="56dp"
-                android:layout_gravity="center"
-                android:background="@drawable/preview_background"
-                android:contentDescription="@string/last_photo"
-                android:scaleType="centerCrop"
-                android:clipToOutline="true" />
         </FrameLayout>
     </LinearLayout>
 
