@@ -165,6 +165,13 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        // 水印按钮
+        binding.watermarkButton.setOnClickListener { view ->
+            animateButtonPress(view) {
+                showWatermarkStyleSelector()
+            }
+        }
+
         // 闪光灯按钮
         binding.flashButton.setOnClickListener { view ->
             animateButtonPress(view) {
@@ -507,6 +514,19 @@ class MainActivity : AppCompatActivity() {
             type = "image/*"
         }
         galleryLauncher.launch(intent)
+    }
+
+    private fun showWatermarkStyleSelector() {
+        if (!permissionManager.hasLocationPermission()) {
+            permissionManager.requestLocationPermission(this)
+            Toast.makeText(this, "请授予位置权限以获取地理信息", Toast.LENGTH_SHORT).show()
+            return
+        }
+
+        val sheet = WatermarkStyleBottomSheet.newInstance(currentLocation) { style ->
+            binding.watermarkOverlay.setStyledWatermark(style)
+        }
+        sheet.show(supportFragmentManager, "watermark_style")
     }
 
     private fun updateFlashIcon(flashMode: String) {

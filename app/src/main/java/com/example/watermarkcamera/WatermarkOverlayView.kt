@@ -25,9 +25,26 @@ class WatermarkOverlayView @JvmOverloads constructor(
     private var currentLocation: Location? = null
     private var cachedAddress: String? = null
     private var watermarkText: String = ""
-    
+
+    // 手动水印样式（由 WatermarkStyleBottomSheet 设置）
+    private var manualWatermarkText: String? = null
+    private var manualWatermarkType: WatermarkStyleBottomSheet.WatermarkStyleType? = null
+
     private val textPaint = TextPaint().apply {
         isAntiAlias = true
+    }
+
+    private val timeLargePaint = TextPaint().apply {
+        isAntiAlias = true
+        textSize = TIME_TEXT_SIZE_LARGE
+        typeface = Typeface.DEFAULT_BOLD
+        color = Color.parseColor("#FFE66D")
+    }
+
+    private val timeSmallPaint = TextPaint().apply {
+        isAntiAlias = true
+        textSize = TIME_TEXT_SIZE_SMALL
+        color = Color.WHITE
     }
 
     private val backgroundPaint = Paint().apply {
@@ -43,6 +60,8 @@ class WatermarkOverlayView @JvmOverloads constructor(
         private const val CORNER_RADIUS = 20f
         private const val LINE_SPACING_MULTIPLIER = 1.2f
         private const val UPDATE_INTERVAL = 1000L
+        private const val TIME_TEXT_SIZE_LARGE = 96f
+        private const val TIME_TEXT_SIZE_SMALL = 32f
     }
 
     init {
@@ -68,11 +87,41 @@ class WatermarkOverlayView @JvmOverloads constructor(
         }
     }
 
+    /**
+     * 设置手动水印样式（由 WatermarkStyleBottomSheet 调用）
+     * 对于 TIME 类型，文字格式为 "TIME:HH:mm\n日期 地址"
+     */
+    fun setStyledWatermark(style: WatermarkStyleBottomSheet.WatermarkStyle) {
+        manualWatermarkText = style.text
+        manualWatermarkType = style.type
+        watermarkText = style.text
+        invalidate()
+    }
+
+    fun clearManualWatermark() {
+        manualWatermarkText = null
+        manualWatermarkType = null
+        refreshWatermark()
+    }
+
     private fun startPeriodicUpdate() {
         coroutineScope.launch {
             while (isActive) {
                 if (configManager.showDateTime) {
-                    refreshWatermark()
+                    // 如果是时间水印，实时刷新时间部分
+                    if (manualWatermarkType == WatermarkStyleBottomSheet.WatermarkStyleType.TIME) {
+                        val current = manualWatermarkText ?: ""
+                        if (current.startsWith("TIME:")) {
+                            val timeFormat = java.text.SimpleDateFormat("HH:mm", Locale.getDefault())
+                            val newTime = timeFormat.format(java.util.Date())
+                            val rest = current.substringAfter("\n", "")
+                            manualWatermarkText = "TIME:$newTime\n$rest"
+                            watermarkText = manualWatermarkText ?: ""
+                            invalidate()
+                        }
+                    } else if (manualWatermarkText == null) {
+                        refreshWatermark()
+                    }
                 }
                 delay(UPDATE_INTERVAL)
             }
@@ -80,39 +129,30 @@ class WatermarkOverlayView @JvmOverloads constructor(
     }
 
     private suspend fun buildWatermarkText(): String = withContext(Dispatchers.Default) {
+        if (manualWatermarkText != null) return@withContext manualWatermarkText!!
+
         val parts = buildList {
             configManager.customWatermarkText?.takeIf { it.isNotEmpty() }?.let { add(it) }
-
-            if (configManager.showDateTime) {
-                add(dateFormat.format(Date()))
-            }
-
+            if (configManager.showDateTime) add(dateFormat.format(Date()))
             if (configManager.showLocation && currentLocation != null) {
                 add(buildLocationText(currentLocation!!))
             }
         }
-
         parts.joinToString("\n")
     }
 
     private suspend fun buildLocationText(location: Location): String {
         val parts = mutableListOf<String>()
-
         parts.add("经度: %.6f°".format(location.longitude))
         parts.add("纬度: %.6f°".format(location.latitude))
-
         if (configManager.fetchElevation && location.hasAltitude()) {
             parts.add("海拔: %.1f米".format(location.altitude))
         }
-
         if (configManager.showAddress) {
             if (cachedAddress == null) {
                 cachedAddress = try {
                     withContext(Dispatchers.IO) {
-                        addressResolver.getAddressFromLocation(
-                            location.latitude,
-                            location.longitude
-                        )
+                        addressResolver.getAddressFromLocation(location.latitude, location.longitude)
                     } ?: "获取失败"
                 } catch (e: Exception) {
                     "获取失败"
@@ -120,17 +160,54 @@ class WatermarkOverlayView @JvmOverloads constructor(
             }
             parts.add("地址: $cachedAddress")
         }
-
         return parts.joinToString("\n")
     }
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
+        if (watermarkText.isEmpty()) return
 
-        if (watermarkText.isEmpty()) {
-            return
+        if (manualWatermarkType == WatermarkStyleBottomSheet.WatermarkStyleType.TIME
+            && watermarkText.startsWith("TIME:")
+        ) {
+            drawTimeWatermark(canvas)
+        } else {
+            drawNormalWatermark(canvas)
         }
+    }
 
+    private fun drawTimeWatermark(canvas: Canvas) {
+        val raw = watermarkText.removePrefix("TIME:")
+        val lines = raw.split("\n", limit = 2)
+        val bigTime = lines.getOrElse(0) { "" }.trim()
+        val subtitle = lines.getOrElse(1) { "" }.trim()
+
+        val bgAlpha = configManager.watermarkBackgroundAlpha
+        backgroundPaint.color = Color.argb(bgAlpha, 0, 0, 0)
+
+        val bigW = timeLargePaint.measureText(bigTime)
+        val subW = if (subtitle.isNotEmpty()) timeSmallPaint.measureText(subtitle) else 0f
+        val blockW = maxOf(bigW, subW) + BACKGROUND_PADDING * 2
+        val bigH = timeLargePaint.textSize
+        val subH = if (subtitle.isNotEmpty()) timeSmallPaint.textSize + 8f else 0f
+        val blockH = bigH + subH + BACKGROUND_PADDING * 2
+
+        val left = WATERMARK_PADDING.toFloat()
+        val top = (height - blockH - BACKGROUND_PADDING).toFloat()
+        val rect = RectF(left, top, left + blockW, top + blockH)
+        canvas.drawRoundRect(rect, CORNER_RADIUS, CORNER_RADIUS, backgroundPaint)
+
+        val textX = left + BACKGROUND_PADDING
+        val textY = top + BACKGROUND_PADDING + bigH - timeLargePaint.descent()
+        canvas.drawText(bigTime, textX, textY, timeLargePaint)
+
+        if (subtitle.isNotEmpty()) {
+            val subY = textY + timeLargePaint.descent() + 8f + timeSmallPaint.textSize - timeSmallPaint.descent()
+            canvas.drawText(subtitle, textX, subY, timeSmallPaint)
+        }
+    }
+
+    private fun drawNormalWatermark(canvas: Canvas) {
         val textSize = configManager.watermarkTextSize
         val textColor = configManager.watermarkColor
         val backgroundAlpha = configManager.watermarkBackgroundAlpha
@@ -140,10 +217,9 @@ class WatermarkOverlayView @JvmOverloads constructor(
             color = textColor
             this.textSize = textSize
         }
-
         backgroundPaint.color = Color.argb(backgroundAlpha, 0, 0, 0)
 
-        val textWidth = width - (WATERMARK_PADDING * 2)
+        val textWidth = width - WATERMARK_PADDING * 2
         val textLayout = StaticLayout.Builder.obtain(
             watermarkText, 0, watermarkText.length, textPaint, textWidth
         )
@@ -153,26 +229,19 @@ class WatermarkOverlayView @JvmOverloads constructor(
             .build()
 
         val textHeight = textLayout.height
-
         val backgroundRect = calculateBackgroundRect(position, textWidth, textHeight)
         canvas.drawRoundRect(backgroundRect, CORNER_RADIUS, CORNER_RADIUS, backgroundPaint)
 
         val (textX, textY) = calculateTextPosition(position, textWidth, textHeight)
-
         canvas.save()
-        canvas.translate(textX.toFloat(), textY.toFloat())
+        canvas.translate(textX, textY)
         textLayout.draw(canvas)
         canvas.restore()
     }
 
-    private fun calculateBackgroundRect(
-        position: Int,
-        textWidth: Int,
-        textHeight: Int
-    ): RectF {
+    private fun calculateBackgroundRect(position: Int, textWidth: Int, textHeight: Int): RectF {
         val totalWidth = textWidth + BACKGROUND_PADDING * 2
         val totalHeight = textHeight + BACKGROUND_PADDING * 2
-
         return when (position) {
             0 -> RectF(
                 WATERMARK_PADDING.toFloat(),
@@ -201,23 +270,17 @@ class WatermarkOverlayView @JvmOverloads constructor(
         }
     }
 
-    private fun calculateTextPosition(
-        position: Int,
-        textWidth: Int,
-        textHeight: Int
-    ): Pair<Float, Float> {
+    private fun calculateTextPosition(position: Int, textWidth: Int, textHeight: Int): Pair<Float, Float> {
         val textX = when (position) {
             2 -> WATERMARK_PADDING + BACKGROUND_PADDING.toFloat()
             3 -> width - WATERMARK_PADDING - textWidth - BACKGROUND_PADDING.toFloat()
             else -> WATERMARK_PADDING + BACKGROUND_PADDING.toFloat()
         }
-
         val textY = when (position) {
             1 -> BACKGROUND_PADDING.toFloat()
             2, 3 -> WATERMARK_PADDING + BACKGROUND_PADDING.toFloat()
             else -> height - textHeight - BACKGROUND_PADDING.toFloat()
         }
-
         return Pair(textX, textY)
     }
 

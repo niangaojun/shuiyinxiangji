@@ -65,6 +65,14 @@ class PermissionManager(private val context: Context) {
         )
     }
 
+    fun requestLocationPermission(activity: Activity) {
+        ActivityCompat.requestPermissions(
+            activity,
+            LOCATION_PERMISSIONS,
+            ALL_PERMISSIONS_REQUEST_CODE
+        )
+    }
+
     fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<out String>,
